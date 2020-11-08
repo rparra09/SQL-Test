@@ -1,0 +1,88 @@
+
+--Q2.1: What was the total employment in 'Mining and Logging' in each division in June 2019?
+-- List the division names (alphabetically) with the corresponding region name, show the total employment
+-- rounded to an integer number, and show the record count for each row. The first row should show: East North Central, Midwest, 38, 5
+--names	region	employment	record_count
+
+SELECT division.name as names, region, ROUND(SUM(employment_1000s::numeric),0) as employment, COUNT(*) as record_count
+FROM division RIGHT JOIN region ON division.region_number=region.number
+INNER JOIN public.state ON state.division_number=division.number
+INNER JOIN blse ON blse.state=state.name
+WHERE industry='Mining and Logging' AND EXTRACT (YEAR FROM date)=2019 AND EXTRACT (MONTH FROM date)=06
+GROUP BY division.name, region
+ORDER BY division.name ASC;
+
+
+--OUTPUT
+--East North Central	(2,Midwest)	38	5
+--East South Central	(3,South)	27	3
+--Mid-Atlantic	(1,Northeast)	36	3
+--Mountain	(4,West)	125	8
+--New England	(1,Northeast)	6	6
+--Pacific	(4,West)	49	4
+--South Atlantic	(3,South)	46	4
+--West North Central	(2,Midwest)	42	5
+--West South Central	(3,South)	345	4
+
+
+
+
+
+
+--Q2.2: Which divisions (use names) had the highest average employment in Government in June 2019?
+-- Round to two digits after the decimal point. Order by the decreasing values of the average, 
+-- show the record count for each row (10 rows, the total of record_count should be 53)
+
+SELECT division.name as names, ROUND(AVG(employment_1000s::numeric/1000),2) as avg_employment, COUNT(*) as record_count
+FROM division RIGHT JOIN region ON division.region_number=region.number
+INNER JOIN public.state ON state.division_number=division.number
+INNER JOIN blse ON blse.state=state.name
+WHERE industry='Government' AND EXTRACT (YEAR FROM date)=2019 AND EXTRACT (MONTH FROM date)=06
+GROUP BY division.name
+ORDER BY avg_employment DESC;
+
+
+ 
+--OUTPUT
+--names	avg_employment	record_count
+--Mid-Atlantic	0.93	3
+--Pacific	0.74	5
+--West South Central	0.72	4
+--East North Central	0.61	5
+--South Atlantic	0.51	9
+--East South Central	0.35	4
+--West North Central	0.25	7
+--Mountain	0.22	8
+--New England	0.17	6
+--Other	0.11	2
+
+
+
+
+
+
+
+
+-- Q2.3: Which divisions (use names) had the employment in Manufacturing in June 2019 lower than 1.5 million??
+-- Show the record count. Do not round, order the results by decreasing employment. The total of record_count should be 31
+
+SELECT division.name as names, SUM(blse.employment_1000s::numeric) as employment, COUNT(*) as record_count
+FROM division RIGHT JOIN region ON division.region_number=region.number
+INNER JOIN public.state ON state.division_number=division.number
+INNER JOIN blse ON blse.state=state.name
+WHERE industry='Manufacturing' AND EXTRACT (YEAR FROM date)=2019 AND EXTRACT (MONTH FROM date)=06
+GROUP BY division.name
+HAVING SUM(blse.employment_1000s) < 1500
+ORDER BY employment DESC;
+
+ 
+
+--names	employment	record_count
+--Mid-Atlantic	1266.8	3
+--West South Central	1207.5	3
+--West North Central	1166.6	7
+--East South Central	754.8	3
+--Mountain	652.3	8
+--New England	600.5	6
+--Other	75.1	1
+
